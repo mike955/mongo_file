@@ -1,8 +1,8 @@
 import * as mongoose from "mongoose";
 
-let _connectMap: { [key: string]: mongoose.Connection } = {};
+let _connectMap: { [key: string]: any } = {};
 
-function getMongoConnection(key) {
+async function getMongoConnection(key) {
   if (_connectMap[key] === undefined) {
     const mongo_cfg = require("../../conf/mongo");
     const host = mongo_cfg.host;
@@ -11,13 +11,16 @@ function getMongoConnection(key) {
     const password = mongo_cfg.password;
     const database = mongo_cfg.database;
     const uri = `mongodb://${host}:${port}/${database}`;
-    _connectMap[key] = mongoose.createConnection(uri, {
-      server: { poolSize: 10 },
-      auth: { user, password }
+    _connectMap[key] = await mongoose.createConnection(uri, {
+      poolSize: 10 ,
+      auth: { user, password },
+      useNewUrlParser: true,
+      useUnifiedTopology: true
     });
   }
+  return _connectMap;
 }
 
-export default {
+export {
   getMongoConnection
 };
