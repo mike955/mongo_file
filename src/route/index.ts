@@ -3,8 +3,8 @@ import * as Router from 'koa-router';
 const router = new Router();
 
 router
-  .get('/', (ctx, next) => {
-    ctx.body = ctx.request.url;
+  .get('/test', (ctx, next) => {
+    ctx.body = 'hello word';
   })
 
 export default router;
