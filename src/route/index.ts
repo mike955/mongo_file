@@ -37,7 +37,7 @@ router
     );
     let image_res = await collection.findOne({ filename: filename });
     if (image_res !== null) {
-      let res = await download(db);
+      let res = await download(db, filename);
       ctx.set("content-type", "image/png");
       ctx.body = res;
     } else {
@@ -56,7 +56,7 @@ router
     );
     let image_res = await collection.findOne({ filename: filename });
     if (image_res !== null) {
-      let res = await download(db);
+      let res = await download(db, filename);
       ctx.set({
         "Content-disposition": `attachment; filename="${filename}`,
         "Content-Type": "application/octet-stream"
@@ -101,7 +101,7 @@ async function upload(db, fileStream) {
   });
 }
 
-async function download(db) {
+async function download(db, filename) {
   return new Promise(async (resolve, reject) => {
     let gridfsBucket = new mongodb.GridFSBucket(db, {
       chunkSizeBytes: 1024,
@@ -109,14 +109,17 @@ async function download(db) {
     });
     let fileStream: any = [];
     gridfsBucket
-      .openDownloadStreamByName("123456789.png")
+      .openDownloadStreamByName(filename)
       .pipe(fs.createWriteStream("./12.png"))
       .on("error", function(error) {
-        // assert.ifError(error);
+        reject(error);
       })
       .on("finish", function() {
         console.log("done!");
-        resolve(fs.createReadStream("./12.png"));
+        resolve(fs.createReadStream(filename));
+        process.nextTick(() => {
+          fs.unlinkSync(filename);
+        });
       });
 
     // fs.createReadStream("./12.png")
